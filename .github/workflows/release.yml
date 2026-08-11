@@ -1,0 +1,302 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+# Права выдаются по джобам: писать в этот репозиторий нужно только `publish`,
+# а `homebrew` работает исключительно через PAT в чужом репозитории тапа.
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Тег обязан совпасть с Cargo.toml и иметь секцию в CHANGELOG.
+  # ---------------------------------------------------------------------------
+  verify-version:
+    name: Verify the tag matches the tree
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - run: make version-check TAG="${GITHUB_REF_NAME}"
+
+  # ---------------------------------------------------------------------------
+  # 2. Кросс-сборка. Каждая джоба отдаёт один .tar.gz.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build ${{ matrix.target }}
+    needs: verify-version
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+          - target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+          # Кросс-сборка на arm64-раннере: macos-13 (последний хостед Intel)
+          # стоит в очереди часами и выводится из эксплуатации. Системный
+          # тулчейн Apple Silicon собирает x86_64 без дополнительной обвязки.
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install the musl toolchain
+        if: endsWith(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build the release archive
+        # rustls вместо OpenSSL, поэтому статической musl-сборке нужен только musl-gcc.
+        env:
+          CC_x86_64_unknown_linux_musl: musl-gcc
+          CC_aarch64_unknown_linux_musl: musl-gcc
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: musl-gcc
+        run: make dist TARGET=${{ matrix.target }}
+
+      - name: Smoke-test the binary it just built
+        # Кросс-собранный x86_64 на arm64-маке не запускается.
+        if: matrix.target != 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin="target/${{ matrix.target }}/release/hostsctl"
+          "$bin" --version
+          work="$(mktemp -d)"
+          printf '127.0.0.1\tlocalhost\n' > "$work/hosts"
+          "$bin" --config "$work/c.yaml" --target "$work/hosts" init
+          "$bin" --config "$work/c.yaml" --target "$work/hosts" add 127.0.0.1 smoke.local
+          "$bin" --config "$work/c.yaml" --target "$work/hosts" apply -y
+          grep -q smoke.local "$work/hosts"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist/hostsctl-${{ matrix.target }}.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # 3. Суммы, подписи, провенанс, GitHub Release.
+  # ---------------------------------------------------------------------------
+  publish:
+    name: Sign, attest and publish the release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # Нужно для keyless-подписи cosign и для build provenance.
+      id-token: write
+      attestations: write
+    outputs:
+      version: ${{ steps.collect.outputs.version }}
+      sha_aarch64_darwin: ${{ steps.collect.outputs.sha_aarch64_darwin }}
+      sha_x86_64_darwin: ${{ steps.collect.outputs.sha_x86_64_darwin }}
+      sha_x86_64_linux: ${{ steps.collect.outputs.sha_x86_64_linux }}
+      sha_aarch64_linux: ${{ steps.collect.outputs.sha_aarch64_linux }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Write checksums.txt and collect the SHAs
+        id: collect
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          cd dist
+          sha256sum hostsctl-*.tar.gz > checksums.txt
+          cat checksums.txt
+
+          declare -A out_keys=(
+            [aarch64-apple-darwin]=sha_aarch64_darwin
+            [x86_64-apple-darwin]=sha_x86_64_darwin
+            [x86_64-unknown-linux-gnu]=sha_x86_64_linux
+            [aarch64-unknown-linux-gnu]=sha_aarch64_linux
+          )
+          for target in "${!out_keys[@]}"; do
+            sha=$(sha256sum "hostsctl-${target}.tar.gz" | awk '{print $1}')
+            echo "${out_keys[$target]}=$sha" >> "$GITHUB_OUTPUT"
+          done
+
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Sign every archive (keyless)
+        env:
+          COSIGN_YES: "true"
+        run: |
+          set -euo pipefail
+          for f in dist/hostsctl-*.tar.gz dist/checksums.txt; do
+            cosign sign-blob --bundle "${f}.bundle" "$f"
+          done
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: 'dist/hostsctl-*.tar.gz'
+
+      - name: Extract the release notes for this version
+        id: notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          notes="$(mktemp)"
+          awk -v v="$version" '
+            $0 ~ "^## \\["v"\\]" { p=1; next }
+            p && /^## \[/ { exit }
+            p { print }
+          ' CHANGELOG.md > "$notes"
+          {
+            echo
+            echo "## Install"
+            echo
+            echo '```bash'
+            echo "brew install jtprogru/tap/hostsctl"
+            echo "cargo install hostsctl --version $version"
+            echo "curl -fsSL https://raw.githubusercontent.com/jtprogru/hostsctl/main/scripts/install.sh | sh"
+            echo '```'
+            echo
+            echo "Every archive carries a keyless cosign signature (\`.bundle\`) and a SLSA build"
+            echo "provenance attestation; \`checksums.txt\` lists the sha256 of each one."
+          } >> "$notes"
+          echo "file=${notes}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the GitHub release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.file }}
+          draft: false
+          # Любой тег вида v1.2.3-rc1 автоматически становится pre-release.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            dist/hostsctl-*.tar.gz
+            dist/hostsctl-*.tar.gz.bundle
+            dist/checksums.txt
+            dist/checksums.txt.bundle
+
+  # ---------------------------------------------------------------------------
+  # 4. crates.io.
+  # ---------------------------------------------------------------------------
+  crates-io:
+    name: Publish to crates.io
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - name: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "::warning::CARGO_REGISTRY_TOKEN is not set, skipping the crates.io publish"
+            exit 0
+          fi
+          cargo publish --locked
+
+  # ---------------------------------------------------------------------------
+  # 5. jtprogru/homebrew-tap → Formula/hostsctl.rb.
+  # ---------------------------------------------------------------------------
+  homebrew:
+    name: Update the Homebrew formula
+    needs: publish
+    # Pre-release не должен становиться тем, что ставит `brew install`.
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out hostsctl
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: hostsctl
+          persist-credentials: false
+
+      - name: Check out the tap
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: jtprogru/homebrew-tap
+          ref: main
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      # Каждое подставляемое значение попадает в Ruby-файл, который исполняется
+      # на машине любого, кто делает `brew install`. Поэтому форма проверяется
+      # до подстановки: случайный `#{...}` был бы выполнением кода.
+      - name: Render Formula/hostsctl.rb
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+          SHA_AARCH64_DARWIN: ${{ needs.publish.outputs.sha_aarch64_darwin }}
+          SHA_X86_64_DARWIN: ${{ needs.publish.outputs.sha_x86_64_darwin }}
+          SHA_X86_64_LINUX: ${{ needs.publish.outputs.sha_x86_64_linux }}
+          SHA_AARCH64_LINUX: ${{ needs.publish.outputs.sha_aarch64_linux }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::unexpected version: $VERSION"
+            exit 1
+          fi
+          for sha in "$SHA_AARCH64_DARWIN" "$SHA_X86_64_DARWIN" \
+                     "$SHA_X86_64_LINUX" "$SHA_AARCH64_LINUX"; do
+            if [[ ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::unexpected sha256: $sha"
+              exit 1
+            fi
+          done
+
+          mkdir -p homebrew-tap/Formula
+          envsubst < hostsctl/.github/templates/hostsctl.rb.tpl > homebrew-tap/Formula/hostsctl.rb
+          cat homebrew-tap/Formula/hostsctl.rb
+
+      - name: Commit and push
+        working-directory: homebrew-tap
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/hostsctl.rb
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git commit -m "hostsctl ${VERSION}"
+          git push origin main

@@ -1,0 +1,32 @@
+name: Feature request
+description: Something hostsctl should be able to do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and where does hostsctl get in the way?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: A command line, a config snippet, or a description — whatever is clearest.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today instead
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This works within what `/etc/hosts` can actually express (no wildcards, no ports, no paths)
+        - label: This does not require `apply` to reach the network

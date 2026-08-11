@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: short
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+
+      - name: Install shell tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          sudo install -m 0755 ./actionlint /usr/local/bin/actionlint
+
+      - run: make lint
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # Windows is deliberately absent: hostsctl is built on /etc/hosts, libc
+      # and the platform's DNS cache flush, none of which exist there.
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: make test
+
+  generated-docs:
+    name: Generated docs are current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: make gen-check
+
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: read rust-version from Cargo.toml
+        id: msrv
+        run: echo "version=$(awk -F'\"' '/^rust-version/ {print $2; exit}' Cargo.toml)" >> "$GITHUB_OUTPUT"
+      # Тот же пин, что и везде. Этот коммит по умолчанию ставит stable, но
+      # явный toolchain ниже всегда выигрывает — а это важно: сейчас stable и
+      # MSRV совпадают, и молчаливый откат выглядел бы как прошедшая проверка.
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: msrv
+      - run: cargo check --all-targets --locked
+
+  package:
+    name: cargo publish --dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: make publish-dry
+
+  smoke:
+    name: Smoke (${{ matrix.os }})
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: cargo build --release --locked
+
+      # Прогон по копии hosts во временном каталоге: настоящий /etc/hosts
+      # раннера не трогаем, но проходим весь путь от init до apply.
+      - name: Drive the release binary end to end
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin="$PWD/target/release/hostsctl"
+          work="$(mktemp -d)"
+          export HOSTSCTL_CACHE="$work/cache"
+          cfg="$work/config.yaml"
+          target="$work/hosts"
+          printf '127.0.0.1\tlocalhost\n10.0.0.5 nas.home\n' > "$target"
+
+          run() { "$bin" --config "$cfg" --target "$target" "$@"; }
+
+          "$bin" --version
+          run init
+          run add 127.0.0.1 app.local --comment "smoke"
+          run add 10.0.0.7 a.local b.local
+          run group add work --file zones/work.yaml
+          run add 10.0.0.8 stand.local --group work
+          run list --all
+          run check
+          run diff
+          run apply -y
+          run status
+          run backup list
+
+          grep -q '10.0.0.5 nas.home' "$target" || { echo "::error::unmanaged line lost"; exit 1; }
+          grep -q 'app.local' "$target"          || { echo "::error::entry not rendered"; exit 1; }
+          grep -q 'stand.local' "$target"        || { echo "::error::zone group not rendered"; exit 1; }
+
+          run off -y
+          grep -q 'hostsctl begin' "$target" && { echo "::error::block survived off"; exit 1; }
+          grep -q '127.0.0.1' "$target"      || { echo "::error::localhost lost"; exit 1; }
+
+          for sh in bash zsh fish; do "$bin" completions "$sh" > /dev/null; done
+          "$bin" man > /dev/null
+          echo "smoke ok"
+
+      - name: Exit codes stay meaningful
+        shell: bash
+        run: |
+          set -uo pipefail
+          bin="$PWD/target/release/hostsctl"
+          work="$(mktemp -d)"
+          printf 'version: 1\ngroups: [oops\n' > "$work/broken.yaml"
+          "$bin" --config "$work/broken.yaml" list; test $? -eq 3
+          "$bin" not-a-command; test $? -eq 2

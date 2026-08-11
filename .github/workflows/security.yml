@@ -1,0 +1,38 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+    paths: ['Cargo.toml', 'Cargo.lock', 'deny.toml', '.github/workflows/security.yml']
+  pull_request:
+    paths: ['Cargo.toml', 'Cargo.lock', 'deny.toml']
+  schedule:
+    # Раз в неделю, чтобы свежая advisory всплыла без ожидания коммита.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: RustSec advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: taiki-e/install-action@8c896af1f8cfa69543cf378a8a77720c8317d7e2 # cargo-audit
+        with:
+          tool: cargo-audit
+      - run: cargo audit --deny warnings
+
+  deny:
+    name: Licences, sources and duplicates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: taiki-e/install-action@8c896af1f8cfa69543cf378a8a77720c8317d7e2 # cargo-deny
+        with:
+          tool: cargo-deny
+      - run: cargo deny check

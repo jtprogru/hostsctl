@@ -1,0 +1,58 @@
+name: Bug report
+description: Something hostsctl did that it should not have
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste your real `/etc/hosts` if it contains anything private.
+        A minimal reproduction against a temporary file is more useful anyway:
+        `hostsctl --config /tmp/c.yaml --target /tmp/hosts …`
+
+  - type: input
+    id: version
+    attributes:
+      label: hostsctl version
+      description: Output of `hostsctl --version`
+      placeholder: hostsctl 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: OS and architecture
+      placeholder: macOS 15.6 arm64 / Ubuntu 24.04 x86_64
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the command you ran, its output and its exit code.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      description: The smallest config that reproduces it.
+      render: yaml
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I ran `hostsctl check` and included anything it reported
+        - label: I can reproduce this against a temporary `--target`, not only `/etc/hosts`

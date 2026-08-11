@@ -1,22 +1,9 @@
----
-title: Exit codes
-description: What each exit status means, so a script can tell failures apart without parsing text.
----
-
-import { Content as ExitCodes } from '../../../generated/exit-codes.md';
-import { Aside } from '@astrojs/starlight/components';
-
-<Aside type="note" title="Generated">
-  This table is printed by the binary itself via `make gen`, so it cannot drift from the
-  codes the program actually returns.
-</Aside>
-
-<ExitCodes />
 
 ## Using them
 
 The distinction that matters in automation is `3` from `4`: a broken config needs a human,
-a permission failure needs `sudo`.
+a permission failure needs `sudo`. Both `check` and `apply` return `3` when the config has
+errors, so the same branch covers a linting run and a real write.
 
 ```bash
 #!/usr/bin/env bash
@@ -31,6 +18,11 @@ esac
 
 sudo hostsctl apply -y
 ```
+
+`check` exits `0` when it found only warnings — a warning is something worth reading, not
+something worth stopping a pipeline for.
+
+## Output streams
 
 Error messages go to stderr and normal output to stdout, so `hostsctl list | head` works
 the way you expect — including the `SIGPIPE` behaviour of an ordinary unix tool, which

@@ -20,6 +20,9 @@ export default defineConfig({
       editLink: {
         baseUrl: 'https://github.com/jtprogru/hostsctl/edit/main/docs/',
       },
+      customCss: ['./src/styles/custom.css'],
+      // Заголовок вкладки: без разделителя главная называлась «hostsctl | hostsctl».
+      titleDelimiter: '·',
       // Английский — основной язык. Русские страницы, которых ещё нет, падают
       // на английский оригинал, а не в 404, поэтому неполная локаль допустима.
       defaultLocale: 'root',
@@ -49,9 +52,10 @@ export default defineConfig({
           label: 'Reference',
           translations: { ru: 'Справочник' },
           items: [
-            { slug: 'reference/cli' },
+            { slug: 'reference/cli', badge: { text: { en: 'generated', ru: 'из кода' }, variant: 'note' } },
             { slug: 'reference/config' },
-            { slug: 'reference/exit-codes' },
+            { slug: 'reference/check' },
+            { slug: 'reference/exit-codes', badge: { text: { en: 'generated', ru: 'из кода' }, variant: 'note' } },
           ],
         },
         {

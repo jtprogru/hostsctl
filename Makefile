@@ -12,10 +12,14 @@ BINDIR  ?= $(PREFIX)/bin
 
 DEBUG_BIN := target/debug/$(BIN)
 
-# Фрагменты справочника, которые печатает сам бинарь. `gen-check` роняет сборку,
-# когда закоммиченная копия разошлась с кодом — иначе доки тихо протухают.
-GEN_DIR   := docs/src/generated
-GEN_FILES := $(GEN_DIR)/cli.md $(GEN_DIR)/exit-codes.md
+# Страницы справочника собираются из двух частей: рукописной обвязки в
+# docs/src/parts/<locale>/ и тела, которое печатает сам бинарь. Собранный файл
+# лежит прямо в коллекции контента — только так у страницы появляется
+# оглавление, а `gen-check` роняет сборку, когда копия разошлась с кодом.
+PARTS_DIR := docs/src/parts
+DOCS_DIR  := docs/src/content/docs
+GEN_FILES := $(DOCS_DIR)/reference/cli.md $(DOCS_DIR)/reference/exit-codes.md \
+             $(DOCS_DIR)/ru/reference/cli.md $(DOCS_DIR)/ru/reference/exit-codes.md
 
 .PHONY: help
 help: ## Show this help
@@ -104,19 +108,29 @@ deny: ## Check licences, advisories, sources and duplicate dependencies
 
 # --- generated documentation ------------------------------------------------
 
+# $(1) — locale directory under parts/, $(2) — page directory under content/docs
+define assemble
+	@mkdir -p $(2)/reference
+	@cat $(PARTS_DIR)/$(1)/reference-cli.head.md          >  $(2)/reference/cli.md
+	@$(DEBUG_BIN) docs cli                                >> $(2)/reference/cli.md
+	@cat $(PARTS_DIR)/$(1)/reference-cli.tail.md          >> $(2)/reference/cli.md
+	@cat $(PARTS_DIR)/$(1)/reference-exit-codes.head.md   >  $(2)/reference/exit-codes.md
+	@$(DEBUG_BIN) docs exit-codes                         >> $(2)/reference/exit-codes.md
+	@cat $(PARTS_DIR)/$(1)/reference-exit-codes.tail.md   >> $(2)/reference/exit-codes.md
+endef
+
 .PHONY: gen
-gen: build ## Regenerate the documentation fragments from the code
-	@mkdir -p $(GEN_DIR)
-	$(DEBUG_BIN) docs cli        > $(GEN_DIR)/cli.md
-	$(DEBUG_BIN) docs exit-codes > $(GEN_DIR)/exit-codes.md
+gen: build ## Regenerate the reference pages from the code
+	$(call assemble,en,$(DOCS_DIR))
+	$(call assemble,ru,$(DOCS_DIR)/ru)
 	@echo "regenerated: $(GEN_FILES)"
 
 .PHONY: gen-check
-gen-check: ## Fail when the committed fragments differ from a fresh generation
+gen-check: ## Fail when the committed reference differs from a fresh generation
 	@$(MAKE) --no-print-directory gen
-	@if ! git diff --quiet -- $(GEN_DIR); then \
+	@if ! git diff --quiet -- $(GEN_FILES); then \
 	  echo "generated docs are out of date; run 'make gen' and commit the result" >&2; \
-	  git --no-pager diff -- $(GEN_DIR); \
+	  git --no-pager diff -- $(GEN_FILES); \
 	  exit 1; \
 	fi
 

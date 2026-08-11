@@ -6,12 +6,16 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 
 ### Added
 
+- `Validation rules`, a reference page listing everything `hostsctl check` reports and whether it blocks a write. The previous list in `How it works` covered five of the rules out of about twenty.
+- The documentation site's landing page now links to every page, grouped the way the sidebar is. It used to be a splash screen with one link and no sidebar.
 - The generated command reference opens with an index of every top-level command.
 - `hostsctl man` is no longer hidden from `--help`. It was documented on the site while being invisible in the CLI.
 
 ### Changed
 
 - `hostsctl check` exits with `3` when the config has errors, the same code `apply` already used. It used to exit with the generic `1`, which contradicted the documented contract that `3` means "a human has to fix the config".
+- The reference pages are assembled by `make gen` from prose in `docs/src/parts/` plus the binary's output, and land directly in the content collection instead of being imported into an `.mdx` wrapper. Imported content is invisible to the table of contents, which is why a page with forty commands used to list two entries in it.
+- `settings.target` is documented accurately: `$HOSTSCTL_TARGET` supplies the default when the key is absent rather than overriding it, and `hostsctl init` always writes the key out.
 
 ### Fixed
 
@@ -20,6 +24,8 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 - `hostsctl backup prune` without write access to the backup directory reported that it had deleted nothing instead of asking for `sudo` and exiting with `4`.
 - `hostsctl init --from` promised to import the managed block as well as the `*.hosts` files of a directory; it only ever imported the files. The help text now says so.
 - Counts in messages are no longer pluralised as `1 errors`.
+- A command name in a heading is no longer rendered as an inline-code chip at heading size, wide tables scroll instead of running into the edge of the column, and every page asked for a favicon that did not exist.
+- The list of commands that need root was missing `backup prune` and `migrate`.
 
 ## [0.1.0] — 2026-08-11
 

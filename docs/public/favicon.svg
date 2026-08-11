@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="hostsctl">
+  <!-- Тот же знак, что и в шапке сайта, но с явным цветом: в favicon
+       currentColor превратился бы в чёрный и пропал на тёмной вкладке. -->
+  <rect x="1.5" y="1.5" width="29" height="29" rx="7" stroke="#818cf8" stroke-width="2" opacity="0.5"/>
+  <path d="M7 11h5M15 11h10" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 16h5M15 16h7" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 21h5M15 21h9" stroke="#818cf8" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+</svg>

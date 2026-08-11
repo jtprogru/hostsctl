@@ -67,13 +67,9 @@ the old files into the config. See [Migration](/hostsctl/project/migration/).
 
 ## What `/etc/hosts` cannot do
 
-`hostsctl check` reports what the system would ignore rather than letting it fail silently:
+`hostsctl check` reports what the system would ignore rather than letting it fail silently
+— wildcards, a port or a path in a hostname, an address that does not parse, a name that is
+already defined outside the managed block. An error stops `apply` and exits `3`; a warning
+is printed and nothing is blocked.
 
-- wildcards (`*.example.com`) — an error; use dnsmasq or `/etc/resolver/`;
-- a port or a path in a hostname — an error;
-- an address that does not parse — an error;
-- the same address twice inside one entry — a warning;
-- a name already defined outside the managed block — a warning.
-
-A trailing dot (`example.com.`) is not treated as a problem: a lookup without the dot finds
-such a line.
+The full list, level by level, is in the [validation rules](/hostsctl/reference/check/).

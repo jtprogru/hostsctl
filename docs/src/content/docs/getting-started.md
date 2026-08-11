@@ -64,7 +64,9 @@ hostsctl check
 ```
 
 `check` is the linter: it reports what `/etc/hosts` would silently ignore — a wildcard, a
-port in a hostname, an address that is not an address.
+port in a hostname, an address that is not an address. Errors exit `3` and block an
+`apply`; warnings do not. Every rule is listed in the
+[validation rules](/hostsctl/reference/check/).
 
 ## 5. Apply
 
@@ -97,7 +99,16 @@ later `apply` brings everything back.
 
 ## Where to go next
 
+Guides, one task each:
+
 - [Configuration](/hostsctl/guides/configuration/) — what the YAML actually holds.
 - [Groups](/hostsctl/guides/groups/) — switching sets of entries on and off.
 - [Zone files](/hostsctl/guides/zones/) — splitting the config across files.
 - [Blocklists](/hostsctl/guides/blocklists/) — attaching a remote hosts list.
+- [Permissions and sudo](/hostsctl/guides/permissions/) — which commands need root.
+
+Reference, when you need the exact answer:
+
+- [CLI reference](/hostsctl/reference/cli/) — every command and flag.
+- [Config reference](/hostsctl/reference/config/) — every key and its default.
+- [Exit codes](/hostsctl/reference/exit-codes/) — for scripting around it.

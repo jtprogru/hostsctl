@@ -16,7 +16,7 @@ description: Every key of config.yaml and of a zone file.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `target` | path | `/etc/hosts` | The file the managed block is rendered into. Overridden by `--target` and `$HOSTSCTL_TARGET`. |
+| `target` | path | `/etc/hosts`, or `$HOSTSCTL_TARGET` when the key is absent | The file the managed block is rendered into. `--target` overrides it for one run. `$HOSTSCTL_TARGET` only fills the default, so it has no effect once the key is written out — and `hostsctl init` does write it out. |
 | `backup_dir` | path | `/var/db/hostsctl/backups` (macOS), `/var/lib/hostsctl/backups` (Linux) | Where snapshots are written. |
 | `keep_backups` | integer | `20` | How many snapshots to keep. `0` disables pruning. |
 | `flush_dns` | boolean | `true` | Flush the DNS cache after a successful write. Only ever attempted when the target is the real `/etc/hosts`. |
@@ -95,7 +95,7 @@ the one thing the format cannot otherwise express.
 | --- | --- |
 | `HOSTSCTL_CONFIG` | Path to the config; beats `$XDG_CONFIG_HOME` and `~/.config`. |
 | `HOSTSCTL_CACHE` | Directory for cached blocklists. |
-| `HOSTSCTL_TARGET` | Default target file. |
+| `HOSTSCTL_TARGET` | Target file for a config that does not name one. A config written by `hostsctl init` does, so this is mostly useful for a hand-trimmed config. |
 | `XDG_CONFIG_HOME`, `XDG_CACHE_HOME` | Honoured, except under `sudo` where they point at root's environment. |
 | `VISUAL`, `EDITOR` | Used by `hostsctl edit`, in that order, falling back to `vi`. |
 | `NO_COLOR`, `TERM=dumb` | Disable coloured output. Colour is also off when stdout is not a tty. |

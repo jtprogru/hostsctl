@@ -214,7 +214,11 @@ version-check: ## Verify Cargo.toml matches a tag (make version-check TAG=v0.1.0
 release-prep: ## Stamp a version into Cargo.toml (make release-prep VERSION=0.2.0)
 	@test -n "$(VERSION)" || { echo "usage: make release-prep VERSION=X.Y.Z"; exit 1; }
 	@v="$(VERSION)"; v="$${v#v}"; \
-	 sed -i.bak -E '0,/^version = /s//version = "'"$$v"'"/' Cargo.toml && rm -f Cargo.toml.bak; \
+	 awk -v v="$$v" '!done && /^version = /{sub(/"[^"]*"/, "\"" v "\""); done=1} {print}' \
+	   Cargo.toml > Cargo.toml.new && mv Cargo.toml.new Cargo.toml; \
+	 if ! grep -qx "version = \"$$v\"" Cargo.toml; then \
+	   echo "failed to stamp $$v into Cargo.toml" >&2; exit 1; \
+	 fi; \
 	 $(CARGO) update --workspace --quiet; \
 	 echo "stamped $$v — now update CHANGELOG.md, commit, and tag v$$v"
 

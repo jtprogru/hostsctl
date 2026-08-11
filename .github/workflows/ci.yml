@@ -119,6 +119,13 @@ jobs:
 
           "$bin" --version
           run init
+
+          # The default backup directory lives under /var and belongs to root.
+          # The point here is to exercise apply without sudo, so point it at the
+          # sandbox — the permission path itself is covered by the tests.
+          sed -i.bak -E "s#^( *backup_dir: ).*#\1${work}/backups#" "$cfg" && rm -f "$cfg.bak"
+          grep backup_dir "$cfg"
+
           run add 127.0.0.1 app.local --comment "smoke"
           run add 10.0.0.7 a.local b.local
           run group add work --file zones/work.yaml

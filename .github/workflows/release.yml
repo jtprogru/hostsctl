@@ -86,10 +86,16 @@ jobs:
           "$bin" --version
           work="$(mktemp -d)"
           printf '127.0.0.1\tlocalhost\n' > "$work/hosts"
-          "$bin" --config "$work/c.yaml" --target "$work/hosts" init
-          "$bin" --config "$work/c.yaml" --target "$work/hosts" add 127.0.0.1 smoke.local
-          "$bin" --config "$work/c.yaml" --target "$work/hosts" apply -y
+          run() { "$bin" --config "$work/c.yaml" --target "$work/hosts" "$@"; }
+          run init
+          # The default backup directory is under /var and owned by root; this
+          # smoke test runs unprivileged, so keep the snapshots in the sandbox.
+          sed -i.bak -E "s#^( *backup_dir: ).*#\1${work}/backups#" "$work/c.yaml"
+          rm -f "$work/c.yaml.bak"
+          run add 127.0.0.1 smoke.local
+          run apply -y
           grep -q smoke.local "$work/hosts"
+          grep -q localhost "$work/hosts"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

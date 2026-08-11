@@ -4,6 +4,10 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-11
+
+The documentation and the binary now say the same thing. Most of this release is that reconciliation: where the two disagreed, whichever side was wrong was changed.
+
 ### Added
 
 - `Validation rules`, a reference page listing everything `hostsctl check` reports and whether it blocks a write. The previous list in `How it works` covered five of the rules out of about twenty.
@@ -26,6 +30,8 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 - Counts in messages are no longer pluralised as `1 errors`.
 - A command name in a heading is no longer rendered as an inline-code chip at heading size, wide tables scroll instead of running into the edge of the column, and every page asked for a favicon that did not exist.
 - The list of commands that need root was missing `backup prune` and `migrate`.
+- `scripts/install.sh` resolves the latest tag by following the redirect from `github.com/.../releases/latest` instead of calling `api.github.com`, which is rate limited per IP for unauthenticated callers — behind a shared NAT the script could fail with "cannot determine the latest release" through no fault of the caller.
+- `make release-prep` stamps the version on macOS too. It used a GNU-only `sed` address that BSD `sed` ignores while exiting successfully, so on macOS the target reported "stamped" and left `Cargo.toml` alone.
 
 ## [0.1.0] — 2026-08-11
 
@@ -46,5 +52,6 @@ First release. `hostsctl` keeps `/etc/hosts` entries in a YAML config and render
 - A documentation site at <https://jtprogru.github.io/hostsctl/>, English with a Russian locale. The command reference and the exit-code table are generated from the code, and CI fails when the committed copies drift.
 - Release archives for Linux (`x86_64`/`aarch64`, glibc and musl) and macOS (Apple silicon and Intel), each with a keyless cosign signature, a SLSA build-provenance attestation and an entry in `checksums.txt`. Distributed through Homebrew, crates.io, `scripts/install.sh` and the archives themselves.
 
-[Unreleased]: https://github.com/jtprogru/hostsctl/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jtprogru/hostsctl/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jtprogru/hostsctl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jtprogru/hostsctl/releases/tag/v0.1.0

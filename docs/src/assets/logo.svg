@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="hostsctl">
+  <rect x="1.5" y="1.5" width="29" height="29" rx="7" stroke="currentColor" stroke-width="2" opacity="0.35"/>
+  <!-- Три строки hosts-файла: адрес слева, имя справа. -->
+  <path d="M7 11h5M15 11h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 16h5M15 16h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 21h5M15 21h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+</svg>

@@ -1,0 +1,37 @@
+---
+title: Коды выхода
+description: Что означает каждый статус, чтобы скрипт различал отказы без разбора текста.
+---
+
+import { Content as ExitCodes } from '../../../../generated/exit-codes.md';
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="note" title="Сгенерировано">
+  Таблицу печатает сам бинарь через `make gen`, поэтому она не может разойтись с кодами,
+  которые программа возвращает на самом деле.
+</Aside>
+
+<ExitCodes />
+
+## Как этим пользоваться
+
+В автоматизации важно отличать `3` от `4`: сломанный конфиг требует человека, нехватка
+прав — `sudo`.
+
+```bash
+#!/usr/bin/env bash
+set -uo pipefail
+
+hostsctl check
+case $? in
+  0) ;;
+  3) echo "конфиг сломан, повторять бессмысленно" >&2; exit 1 ;;
+  *) echo "неожиданный отказ" >&2; exit 1 ;;
+esac
+
+sudo hostsctl apply -y
+```
+
+Ошибки идут в stderr, обычный вывод в stdout, поэтому `hostsctl list | head` работает как
+ожидается — включая поведение при `SIGPIPE`, которое Rust по умолчанию подавляет, а
+hostsctl возвращает как у обычной unix-утилиты.

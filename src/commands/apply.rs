@@ -22,15 +22,20 @@ pub fn plan(ctx: &Ctx, drop_legacy: bool, block: bool) -> Result<Plan> {
     let mut warnings = vec![];
 
     // Ошибки конфига блокируют запись — незачем рендерить заведомо мусор.
+    // Печатает их вызывающий (в конечном счёте main), поэтому здесь они просто
+    // складываются в текст ошибки: иначе `check` выводил бы их дважды.
     let issues = validate::check_config(&ctx.cfg);
     let errors: Vec<_> = issues.iter().filter(|i| i.level == validate::Level::Error).collect();
     if !errors.is_empty() {
-        for e in &errors {
-            eprintln!("  {} {}: {}", ui::red("error"), e.where_, e.message);
-        }
+        let listed: Vec<String> =
+            errors.iter().map(|e| format!("\n  {}: {}", e.where_, e.message)).collect();
         return Err(exit::coded(
             exit::CONFIG,
-            anyhow!("the config has {} errors — fix them (hostsctl check)", errors.len()),
+            anyhow!(
+                "the config has {} — fix them (hostsctl check){}",
+                ui::plural(errors.len(), "error"),
+                listed.concat()
+            ),
         ));
     }
     warnings.extend(

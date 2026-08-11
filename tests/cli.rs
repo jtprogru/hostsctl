@@ -287,6 +287,27 @@ fn status_and_check_report_state() {
     assert!(s.ok(&["check"]).contains("clean"));
 }
 
+/// Сломанный конфиг — это код 3 и у `apply`, и у `check`: документированный
+/// контракт «конфиг чинит человек, права чинит sudo» держится на этом.
+#[test]
+fn check_reports_a_broken_config_as_a_config_error() {
+    let s = Sandbox::new();
+    s.init();
+    s.ok(&["add", "127.0.0.1", "ok.local"]);
+    let cfg = s.path("config.yaml");
+    let text = std::fs::read_to_string(&cfg).unwrap().replace("127.0.0.1", "not-an-ip");
+    std::fs::write(&cfg, text).unwrap();
+
+    let out = s.run(&["check"]);
+    assert_eq!(out.status.code(), Some(3), "a config with errors is a config error");
+    let printed =
+        format!("{}{}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+    assert_eq!(printed.matches("not an IP address").count(), 1, "reported twice:\n{printed}");
+
+    let apply = s.run(&["apply", "-y"]);
+    assert_eq!(apply.status.code(), Some(3), "apply agrees with check");
+}
+
 #[test]
 fn rm_removes_single_hostname_from_entry() {
     let s = Sandbox::new();
@@ -348,14 +369,28 @@ fn generated_docs_cover_every_command() {
     let out = Command::new(bin()).args(["docs", "cli"]).output().unwrap();
     assert!(out.status.success());
     let md = String::from_utf8_lossy(&out.stdout);
-    for cmd in ["hostsctl apply", "hostsctl zone add", "hostsctl source update", "hostsctl backup"]
-    {
+    for cmd in [
+        "hostsctl apply",
+        "hostsctl zone add",
+        "hostsctl source update",
+        "hostsctl backup",
+        "hostsctl man",
+    ] {
         assert!(md.contains(&format!("`{cmd}`")), "{cmd} is missing from the reference");
     }
-    // Скрытые команды в справочник не попадают: заголовка на них быть не должно.
-    for hidden in ["## `hostsctl docs`", "## `hostsctl man`"] {
-        assert!(!md.contains(hidden), "{hidden} should stay out of the reference");
+    // Оглавление в начале страницы ведёт на якорь каждой команды верхнего уровня.
+    for top in ["apply", "backup", "man"] {
+        assert!(
+            md.contains(&format!("[`hostsctl {top}`](#hostsctl-{top})")),
+            "hostsctl {top} is missing from the index table"
+        );
     }
+    // Скрытая команда в справочник не попадает: заголовка на неё быть не должно.
+    assert!(!md.contains("`hostsctl docs`"), "hostsctl docs should stay out of the reference");
+    // Автоматический `help` clap плодит по разделу на каждую подкоманду —
+    // в справочнике это сотни строк ни о чём.
+    assert!(!md.contains("hostsctl help"), "the auto-generated help tree leaked in");
+    assert!(!md.contains("group help"), "the auto-generated help tree leaked in");
 
     let man = Command::new(bin()).arg("man").output().unwrap();
     assert!(man.status.success());

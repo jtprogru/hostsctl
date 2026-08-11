@@ -39,6 +39,11 @@ pub fn cyan(s: &str) -> String {
     paint("36", s)
 }
 
+/// «1 error» / «2 errors» — считать за пользователя буквы утилита обязана сама.
+pub fn plural(n: usize, word: &str) -> String {
+    if n == 1 { format!("{n} {word}") } else { format!("{n} {word}s") }
+}
+
 /// Схлопывает одинаковые сообщения, сохраняя порядок: шесть одинаковых
 /// предупреждений про один и тот же список читать невозможно.
 pub fn dedup_counted(items: &[String]) -> Vec<String> {

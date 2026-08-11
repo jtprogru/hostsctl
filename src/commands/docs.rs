@@ -1,8 +1,9 @@
 //! Фрагменты документации, собранные из самого определения CLI.
 //!
-//! Справочник команд на сайте не пишется руками: `make gen` кладёт сюда вывод
-//! `hostsctl docs cli`, а `make gen-check` роняет CI, если закоммиченная копия
-//! разошлась с кодом. Так справочник не может протухнуть незаметно.
+//! Справочник команд на сайте не пишется руками: `make gen` оборачивает вывод
+//! `hostsctl docs cli` в текст из docs/src/parts и кладёт результат страницей в
+//! docs/src/content/docs. `make gen-check` роняет CI, если закоммиченная копия
+//! разошлась с кодом, — так справочник не может протухнуть незаметно.
 
 use crate::cli::{Cli, DocsCmd};
 use crate::exit;
@@ -39,20 +40,41 @@ fn cli_md() -> String {
     out.push_str("\n## Global options\n\nThese work on every subcommand.\n\n");
     out.push_str(&arg_table(root.get_arguments().filter(|a| a.is_global_set())));
 
-    for sub in sorted_subcommands(&root) {
+    out.push_str("\n## Commands at a glance\n\n");
+    out.push_str(&index_table(&root));
+
+    for sub in subcommands(&root) {
         render(sub, "hostsctl", &mut out, 2);
     }
     out
 }
 
+/// Оглавление страницы: одна строка на команду верхнего уровня со ссылкой на
+/// её раздел. Якорь совпадает с тем, что генерирует rehype-slug из заголовка.
+fn index_table(root: &Command) -> String {
+    let rows: Vec<String> = subcommands(root)
+        .iter()
+        .map(|c| {
+            let name = c.get_name();
+            let about = c.get_about().map(|a| a.to_string()).unwrap_or_default();
+            format!("| [`hostsctl {name}`](#hostsctl-{name}) | {about} |")
+        })
+        .collect();
+    format!("| Command | What it does |\n| --- | --- |\n{}\n\n", rows.join("\n"))
+}
+
 /// Порядок в справочнике — как в `--help`, чтобы страницы читались одинаково.
-fn sorted_subcommands(cmd: &Command) -> Vec<&Command> {
-    cmd.get_subcommands().filter(|c| !c.is_hide_set()).collect()
+///
+/// `help` clap добавляет сам, и для каждой группы команд — ещё по одной на
+/// подкоманду. В справочнике это сотни строк вида «hostsctl group help rm»,
+/// которые ничего не объясняют, поэтому их сюда не пускаем.
+fn subcommands(cmd: &Command) -> Vec<&Command> {
+    cmd.get_subcommands().filter(|c| !c.is_hide_set() && c.get_name() != "help").collect()
 }
 
 fn render(cmd: &Command, parent: &str, out: &mut String, depth: usize) {
     let full = format!("{parent} {}", cmd.get_name());
-    let children = sorted_subcommands(cmd);
+    let children = subcommands(cmd);
 
     out.push_str(&format!("\n{} `{full}`\n\n", "#".repeat(depth)));
 

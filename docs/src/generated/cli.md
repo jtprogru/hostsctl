@@ -11,6 +11,34 @@ These work on every subcommand.
 | `-n, --dry-run` | Write nothing, only show what would happen |
 
 
+## Commands at a glance
+
+| Command | What it does |
+| --- | --- |
+| [`hostsctl apply`](#hostsctl-apply) | Render the config into /etc/hosts (needs root) |
+| [`hostsctl diff`](#hostsctl-diff) | Show the diff between the current /etc/hosts and what apply would write |
+| [`hostsctl status`](#hostsctl-status) | Report on the config, the managed block, groups and backups |
+| [`hostsctl off`](#hostsctl-off) | Remove the managed block from /etc/hosts, leaving the config alone (needs root) |
+| [`hostsctl list`](#hostsctl-list) | List the entries in the config |
+| [`hostsctl search`](#hostsctl-search) | Find entries by a substring of a hostname or an IP |
+| [`hostsctl add`](#hostsctl-add) | Add an entry |
+| [`hostsctl rm`](#hostsctl-rm) | Remove entries by hostname or IP |
+| [`hostsctl enable`](#hostsctl-enable) | Enable entries by hostname |
+| [`hostsctl disable`](#hostsctl-disable) | Disable entries by hostname (they stay in the config) |
+| [`hostsctl group`](#hostsctl-group) | Groups of entries |
+| [`hostsctl zone`](#hostsctl-zone) | Zone files next to the config |
+| [`hostsctl source`](#hostsctl-source) | Remote blocklists |
+| [`hostsctl backup`](#hostsctl-backup) | Backups of /etc/hosts |
+| [`hostsctl import`](#hostsctl-import) | Import existing *.hosts files into the config |
+| [`hostsctl migrate`](#hostsctl-migrate) | Move a legacy hosts-sync setup into the config and drop its block |
+| [`hostsctl check`](#hostsctl-check) | Check the config for things /etc/hosts would silently ignore |
+| [`hostsctl edit`](#hostsctl-edit) | Open the config (or a group's file) in $EDITOR and check it afterwards |
+| [`hostsctl init`](#hostsctl-init) | Create a config from scratch |
+| [`hostsctl config-path`](#hostsctl-config-path) | Print the path to the config and to every attached zone |
+| [`hostsctl completions`](#hostsctl-completions) | Print a shell completion script |
+| [`hostsctl man`](#hostsctl-man) | Print the man page in roff format |
+
+
 ## `hostsctl apply`
 
 Render the config into /etc/hosts (needs root)
@@ -238,78 +266,6 @@ hostsctl group disable <NAME> [OPTIONS]
 | `--apply` | Apply to /etc/hosts right away (needs root) |
 
 
-### `hostsctl group help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl group help <COMMAND>
-```
-
-
-#### `hostsctl group help list`
-
-List the groups
-
-```
-hostsctl group help list
-```
-
-
-#### `hostsctl group help add`
-
-Create a group
-
-```
-hostsctl group help add
-```
-
-
-#### `hostsctl group help move`
-
-Move a group to another file ('main' means the main config)
-
-```
-hostsctl group help move
-```
-
-
-#### `hostsctl group help rm`
-
-Delete a group together with its entries
-
-```
-hostsctl group help rm
-```
-
-
-#### `hostsctl group help enable`
-
-Enable a group
-
-```
-hostsctl group help enable
-```
-
-
-#### `hostsctl group help disable`
-
-Disable a group
-
-```
-hostsctl group help disable
-```
-
-
-#### `hostsctl group help help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl group help help
-```
-
-
 ## `hostsctl zone`
 
 Zone files next to the config
@@ -352,51 +308,6 @@ hostsctl zone rm <PATTERN> [OPTIONS]
 | Option | Description |
 | --- | --- |
 | `<PATTERN>` | Pattern exactly as it appears in include |
-
-
-### `hostsctl zone help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl zone help <COMMAND>
-```
-
-
-#### `hostsctl zone help list`
-
-Show the include patterns and the files they match
-
-```
-hostsctl zone help list
-```
-
-
-#### `hostsctl zone help add`
-
-Attach a file or a pattern (for example 'zones/*.hosts')
-
-```
-hostsctl zone help add
-```
-
-
-#### `hostsctl zone help rm`
-
-Detach a pattern; the files stay on disk
-
-```
-hostsctl zone help rm
-```
-
-
-#### `hostsctl zone help help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl zone help help
-```
 
 
 ## `hostsctl source`
@@ -464,60 +375,6 @@ hostsctl source update [GROUP] [OPTIONS]
 | `--apply` | Apply to /etc/hosts right away (needs root) |
 
 
-### `hostsctl source help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl source help <COMMAND>
-```
-
-
-#### `hostsctl source help list`
-
-List the remote sources and the state of their cache
-
-```
-hostsctl source help list
-```
-
-
-#### `hostsctl source help add`
-
-Attach a remote hosts list as a group
-
-```
-hostsctl source help add
-```
-
-
-#### `hostsctl source help rm`
-
-Detach a source (drops the group and its cache)
-
-```
-hostsctl source help rm
-```
-
-
-#### `hostsctl source help update`
-
-Download the lists again
-
-```
-hostsctl source help update
-```
-
-
-#### `hostsctl source help help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl source help help
-```
-
-
 ## `hostsctl backup`
 
 Backups of /etc/hosts
@@ -559,51 +416,6 @@ hostsctl backup prune [OPTIONS]
 ```
 
 
-### `hostsctl backup help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl backup help <COMMAND>
-```
-
-
-#### `hostsctl backup help list`
-
-List the snapshots
-
-```
-hostsctl backup help list
-```
-
-
-#### `hostsctl backup help restore`
-
-Roll /etc/hosts back to a snapshot (needs root)
-
-```
-hostsctl backup help restore
-```
-
-
-#### `hostsctl backup help prune`
-
-Delete snapshots beyond settings.keep_backups
-
-```
-hostsctl backup help prune
-```
-
-
-#### `hostsctl backup help help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl backup help help
-```
-
-
 ## `hostsctl import`
 
 Import existing *.hosts files into the config
@@ -628,7 +440,7 @@ hostsctl migrate [OPTIONS]
 
 | Option | Description |
 | --- | --- |
-| `--from <FROM>` | Directory holding the *.hosts files of the legacy hosts-sync (default: `.`) |
+| `--from <DIR>` | Directory holding the *.hosts files of the legacy hosts-sync (default: `.`) |
 | `-y, --yes` | Do not ask for confirmation |
 
 
@@ -665,7 +477,7 @@ hostsctl init [OPTIONS]
 | Option | Description |
 | --- | --- |
 | `--force` | Overwrite an existing config |
-| `--from <FROM>` | Import the current managed block and the *.hosts files in this directory |
+| `--from <DIR>` | Import the *.hosts files in this directory into the new config |
 
 
 ## `hostsctl config-path`
@@ -694,353 +506,11 @@ hostsctl completions <SHELL> [OPTIONS]
 | `<SHELL>` | Shell to generate the script for |
 
 
-## `hostsctl help`
+## `hostsctl man`
 
-Print this message or the help of the given subcommand(s)
+Print the man page in roff format
 
 ```
-hostsctl help <COMMAND>
-```
-
-
-### `hostsctl help apply`
-
-Render the config into /etc/hosts (needs root)
-
-```
-hostsctl help apply
-```
-
-
-### `hostsctl help diff`
-
-Show the diff between the current /etc/hosts and what apply would write
-
-```
-hostsctl help diff
-```
-
-
-### `hostsctl help status`
-
-Report on the config, the managed block, groups and backups
-
-```
-hostsctl help status
-```
-
-
-### `hostsctl help off`
-
-Remove the managed block from /etc/hosts, leaving the config alone (needs root)
-
-```
-hostsctl help off
-```
-
-
-### `hostsctl help list`
-
-List the entries in the config
-
-```
-hostsctl help list
-```
-
-
-### `hostsctl help search`
-
-Find entries by a substring of a hostname or an IP
-
-```
-hostsctl help search
-```
-
-
-### `hostsctl help add`
-
-Add an entry
-
-```
-hostsctl help add
-```
-
-
-### `hostsctl help rm`
-
-Remove entries by hostname or IP
-
-```
-hostsctl help rm
-```
-
-
-### `hostsctl help enable`
-
-Enable entries by hostname
-
-```
-hostsctl help enable
-```
-
-
-### `hostsctl help disable`
-
-Disable entries by hostname (they stay in the config)
-
-```
-hostsctl help disable
-```
-
-
-### `hostsctl help group`
-
-Groups of entries
-
-```
-hostsctl help group <COMMAND>
-```
-
-
-#### `hostsctl help group list`
-
-List the groups
-
-```
-hostsctl help group list
-```
-
-
-#### `hostsctl help group add`
-
-Create a group
-
-```
-hostsctl help group add
-```
-
-
-#### `hostsctl help group move`
-
-Move a group to another file ('main' means the main config)
-
-```
-hostsctl help group move
-```
-
-
-#### `hostsctl help group rm`
-
-Delete a group together with its entries
-
-```
-hostsctl help group rm
-```
-
-
-#### `hostsctl help group enable`
-
-Enable a group
-
-```
-hostsctl help group enable
-```
-
-
-#### `hostsctl help group disable`
-
-Disable a group
-
-```
-hostsctl help group disable
-```
-
-
-### `hostsctl help zone`
-
-Zone files next to the config
-
-```
-hostsctl help zone <COMMAND>
-```
-
-
-#### `hostsctl help zone list`
-
-Show the include patterns and the files they match
-
-```
-hostsctl help zone list
-```
-
-
-#### `hostsctl help zone add`
-
-Attach a file or a pattern (for example 'zones/*.hosts')
-
-```
-hostsctl help zone add
-```
-
-
-#### `hostsctl help zone rm`
-
-Detach a pattern; the files stay on disk
-
-```
-hostsctl help zone rm
-```
-
-
-### `hostsctl help source`
-
-Remote blocklists
-
-```
-hostsctl help source <COMMAND>
-```
-
-
-#### `hostsctl help source list`
-
-List the remote sources and the state of their cache
-
-```
-hostsctl help source list
-```
-
-
-#### `hostsctl help source add`
-
-Attach a remote hosts list as a group
-
-```
-hostsctl help source add
-```
-
-
-#### `hostsctl help source rm`
-
-Detach a source (drops the group and its cache)
-
-```
-hostsctl help source rm
-```
-
-
-#### `hostsctl help source update`
-
-Download the lists again
-
-```
-hostsctl help source update
-```
-
-
-### `hostsctl help backup`
-
-Backups of /etc/hosts
-
-```
-hostsctl help backup <COMMAND>
-```
-
-
-#### `hostsctl help backup list`
-
-List the snapshots
-
-```
-hostsctl help backup list
-```
-
-
-#### `hostsctl help backup restore`
-
-Roll /etc/hosts back to a snapshot (needs root)
-
-```
-hostsctl help backup restore
-```
-
-
-#### `hostsctl help backup prune`
-
-Delete snapshots beyond settings.keep_backups
-
-```
-hostsctl help backup prune
-```
-
-
-### `hostsctl help import`
-
-Import existing *.hosts files into the config
-
-```
-hostsctl help import
-```
-
-
-### `hostsctl help migrate`
-
-Move a legacy hosts-sync setup into the config and drop its block
-
-```
-hostsctl help migrate
-```
-
-
-### `hostsctl help check`
-
-Check the config for things /etc/hosts would silently ignore
-
-```
-hostsctl help check
-```
-
-
-### `hostsctl help edit`
-
-Open the config (or a group's file) in $EDITOR and check it afterwards
-
-```
-hostsctl help edit
-```
-
-
-### `hostsctl help init`
-
-Create a config from scratch
-
-```
-hostsctl help init
-```
-
-
-### `hostsctl help config-path`
-
-Print the path to the config and to every attached zone
-
-```
-hostsctl help config-path
-```
-
-
-### `hostsctl help completions`
-
-Print a shell completion script
-
-```
-hostsctl help completions
-```
-
-
-### `hostsctl help help`
-
-Print this message or the help of the given subcommand(s)
-
-```
-hostsctl help help
+hostsctl man [OPTIONS]
 ```
 

@@ -4,6 +4,23 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+
+- The generated command reference opens with an index of every top-level command.
+- `hostsctl man` is no longer hidden from `--help`. It was documented on the site while being invisible in the CLI.
+
+### Changed
+
+- `hostsctl check` exits with `3` when the config has errors, the same code `apply` already used. It used to exit with the generic `1`, which contradicted the documented contract that `3` means "a human has to fix the config".
+
+### Fixed
+
+- The generated command reference no longer contains clap's automatic `help` subcommand tree — roughly half the page was entries like `hostsctl group help rm`, which document nothing.
+- A config error was printed twice by `hostsctl check`: once by the planner, once by the command itself.
+- `hostsctl backup prune` without write access to the backup directory reported that it had deleted nothing instead of asking for `sudo` and exiting with `4`.
+- `hostsctl init --from` promised to import the managed block as well as the `*.hosts` files of a directory; it only ever imported the files. The help text now says so.
+- Counts in messages are no longer pluralised as `1 errors`.
+
 ## [0.1.0] — 2026-08-11
 
 First release. `hostsctl` keeps `/etc/hosts` entries in a YAML config and renders them into a block between markers; everything outside those markers is carried over byte for byte.

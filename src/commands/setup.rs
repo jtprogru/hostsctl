@@ -3,8 +3,8 @@
 use crate::cli::{Cli, CompletionsArgs, ImportArgs, InitArgs, MigrateArgs, Shell};
 use crate::config::{Config, Entry, Group};
 use crate::ctx::Ctx;
-use crate::{hostsfile, ui, validate};
-use anyhow::{Context, Result, bail};
+use crate::{exit, hostsfile, ui, validate};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::CommandFactory;
 use std::path::{Path, PathBuf};
 
@@ -128,10 +128,19 @@ pub fn check(ctx: &Ctx) -> Result<()> {
         ui::ok("the config is clean");
         return Ok(());
     }
+    // Тот же код, что и у apply на сломанном конфиге: скрипт различает
+    // «конфиг чинит человек» (3) и «не хватило прав» (4), не читая текст.
     if !errors.is_empty() {
-        bail!("{} errors, {} warnings", errors.len(), warnings.len());
+        return Err(exit::coded(
+            exit::CONFIG,
+            anyhow!(
+                "{}, {}",
+                ui::plural(errors.len(), "error"),
+                ui::plural(warnings.len(), "warning")
+            ),
+        ));
     }
-    ui::info(&format!("{} warnings, no errors", warnings.len()));
+    ui::info(&format!("{}, no errors", ui::plural(warnings.len(), "warning")));
     Ok(())
 }
 

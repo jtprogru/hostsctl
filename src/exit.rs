@@ -12,7 +12,7 @@ pub const OK: i32 = 0;
 pub const FAILURE: i32 = 1;
 /// The command line itself was wrong; emitted by clap, never by hostsctl.
 pub const USAGE: i32 = 2;
-/// The config or one of its zone files is missing, unreadable or invalid.
+/// The config is missing, unreadable, invalid, or holds errors that check reports.
 pub const CONFIG: i32 = 3;
 /// The target file or the backup directory is not writable — retry under sudo.
 pub const PERMISSION: i32 = 4;
@@ -25,7 +25,7 @@ const TABLE: &[(i32, &str)] = &[
     (OK, "Everything went fine."),
     (FAILURE, "Something went wrong and hostsctl has no more specific code for it."),
     (USAGE, "The command line itself was wrong; emitted by clap, never by hostsctl."),
-    (CONFIG, "The config or one of its zone files is missing, unreadable or invalid."),
+    (CONFIG, "The config is missing, unreadable, invalid, or holds errors that check reports."),
     (PERMISSION, "The target file or the backup directory is not writable — retry under sudo."),
     (IO, "Reading or writing a file failed for a reason other than permissions."),
     (NETWORK, "A remote blocklist could not be downloaded."),

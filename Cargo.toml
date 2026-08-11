@@ -1,0 +1,35 @@
+[package]
+name = "hostsctl"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+authors = ["Mikhail Savin <jtprogru@gmail.com>"]
+description = "Manage /etc/hosts from a YAML config: groups, zone files, remote blocklists, backups"
+license = "MIT"
+repository = "https://github.com/jtprogru/hostsctl"
+homepage = "https://jtprogru.github.io/hostsctl/"
+documentation = "https://jtprogru.github.io/hostsctl/"
+readme = "README.md"
+keywords = ["hosts", "dns", "blocklist", "cli", "sysadmin"]
+categories = ["command-line-utilities", "config"]
+exclude = [".github/**", "docs/**", "dist/**", "scripts/**", "plans/**"]
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.6", features = ["derive"] }
+clap_complete = "4.6.9"
+clap_mangen = "0.2"
+glob = "0.3.4"
+libc = "0.2.189"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_yaml = "0.9.34"
+similar = "3.1.2"
+tempfile = "3.27.0"
+time = { version = "0.3.55", features = ["formatting", "local-offset", "macros"] }
+ureq = "3.4.0"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"

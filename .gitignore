@@ -1,0 +1,10 @@
+/target/
+/dist/
+*.bak
+*.log
+tmp/
+
+# docs site
+docs/node_modules/
+docs/dist/
+docs/.astro/

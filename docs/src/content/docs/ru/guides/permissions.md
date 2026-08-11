@@ -9,11 +9,13 @@ description: Каким командам нужен root и почему sudo н
 | --- | --- |
 | `list`, `search`, `diff`, `status`, `check`, `config-path` | `apply` |
 | `add`, `rm`, `enable`, `disable` (без `--apply`) | `off` |
-| `group *`, `zone *` (без `--apply`) | `backup restore` |
+| `group *`, `zone *` (без `--apply`) | `backup restore`, `backup prune` |
 | `source add/update/list/rm` | любая команда с `--apply` |
-| `init`, `import`, `edit`, `completions` | |
+| `init`, `import`, `edit`, `completions`, `backup list`, `man` | `migrate`, когда доходит до удаления старого блока |
 
 Правило одно: запись в `/etc/hosts` или в каталог бэкапов требует root, всё остальное нет.
+`backup prune` попал в правую колонку по второй причине — он удаляет файлы в root-овом
+каталоге, поэтому проверяет права заранее, а не сообщает, что удалил ноль снимков.
 
 Когда прав не хватает, hostsctl не пытается ничего обойти. Он печатает точную команду для
 повторного запуска и выходит с кодом `4`:

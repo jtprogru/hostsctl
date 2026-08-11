@@ -28,8 +28,12 @@ pub fn run(ctx: &Ctx, cmd: &BackupCmd) -> Result<()> {
                 ui::info(&format!("dry-run: would delete {extra} snapshots"));
                 return Ok(());
             }
+            // Каталог бэкапов обычно root-овый, а remove_file молча возвращает
+            // ошибку — без этой проверки prune «удалял» бы ноль снимков и
+            // рапортовал об успехе.
+            crate::paths::ensure_dir_writable(&dir, "backup prune")?;
             let n = backup::prune(&dir, ctx.cfg.settings.keep_backups);
-            ui::ok(&format!("snapshots deleted: {n}"));
+            ui::ok(&format!("deleted {}", ui::plural(n, "snapshot")));
             Ok(())
         }
 

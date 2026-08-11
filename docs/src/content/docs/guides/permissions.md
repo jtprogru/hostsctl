@@ -9,12 +9,14 @@ description: Which commands need root, and why sudo does not leave root-owned fi
 | --- | --- |
 | `list`, `search`, `diff`, `status`, `check`, `config-path` | `apply` |
 | `add`, `rm`, `enable`, `disable` (without `--apply`) | `off` |
-| `group *`, `zone *` (without `--apply`) | `backup restore` |
+| `group *`, `zone *` (without `--apply`) | `backup restore`, `backup prune` |
 | `source add/update/list/rm` | any command with `--apply` |
-| `init`, `import`, `edit`, `completions` | |
+| `init`, `import`, `edit`, `completions`, `backup list`, `man` | `migrate`, once it gets to dropping the old block |
 
 The split follows one rule: writing to `/etc/hosts` or to the backup directory needs root,
-and nothing else does.
+and nothing else does. `backup prune` is on the root side for the second reason — it
+deletes files in a root-owned directory, so it checks up front instead of reporting that
+it deleted nothing.
 
 When permission is missing, hostsctl does not try to work around it. It prints the exact
 command to re-run and exits with code `4`:

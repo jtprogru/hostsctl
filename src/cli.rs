@@ -79,7 +79,6 @@ pub enum Command {
     /// Print a shell completion script
     Completions(CompletionsArgs),
     /// Print the man page in roff format
-    #[command(hide = true)]
     Man,
     /// Print documentation fragments generated from the code
     #[command(hide = true, subcommand)]
@@ -311,7 +310,7 @@ pub struct ImportArgs {
 #[derive(Args, Debug)]
 pub struct MigrateArgs {
     /// Directory holding the *.hosts files of the legacy hosts-sync
-    #[arg(long, default_value = ".")]
+    #[arg(long, default_value = ".", value_name = "DIR")]
     pub from: PathBuf,
     /// Do not ask for confirmation
     #[arg(long, short = 'y')]
@@ -323,8 +322,8 @@ pub struct InitArgs {
     /// Overwrite an existing config
     #[arg(long)]
     pub force: bool,
-    /// Import the current managed block and the *.hosts files in this directory
-    #[arg(long)]
+    /// Import the *.hosts files in this directory into the new config
+    #[arg(long, value_name = "DIR")]
     pub from: Option<PathBuf>,
 }
 
@@ -358,7 +357,8 @@ pub enum Shell {
 }
 
 /// Фрагменты документации, которые генерируются из самого кода: `make gen`
-/// кладёт их в docs/src/generated, а `make gen-check` роняет CI при расхождении.
+/// собирает из них страницы справочника в docs/src/content/docs, а `make
+/// gen-check` роняет CI при расхождении.
 #[derive(Subcommand, Debug)]
 pub enum DocsCmd {
     /// Full command reference as markdown

@@ -34,7 +34,8 @@ block is never removed without `--drop-legacy`.
 | `src/exit.rs` | Exit codes and the `Coded` error wrapper. |
 | `src/paths.rs` | Config/cache paths and everything euid/sudo related. |
 | `docs/` | Astro + Starlight site, English with a `ru/` locale. |
-| `docs/src/generated/` | **Generated.** Never edit by hand; `make gen` rewrites it. |
+| `docs/src/parts/<locale>/` | Prose around the generated reference: frontmatter, intro, tail. |
+| `docs/src/content/docs/**/reference/{cli,exit-codes}.md` | **Generated.** Assembled by `make gen` from the parts plus the binary's output; never edit by hand. |
 
 ## Commands
 
@@ -45,7 +46,7 @@ make gen         # after any change to src/cli.rs or src/exit.rs
 make docs-build
 ```
 
-`make gen-check` fails the build when `docs/src/generated/` differs from a fresh
+`make gen-check` fails the build when the assembled reference pages differ from a fresh
 generation. If you change the CLI surface and do not run `make gen`, CI will fail.
 
 ## Conventions
@@ -67,5 +68,6 @@ generation. If you change the CLI surface and do not run `make gen`, CI will fai
   DNS flush.
 - Do not make `apply` reach the network. It reads the blocklist cache only, on purpose.
 - Do not add a dependency without checking `deny.toml` allows its licence.
-- Do not edit `docs/src/generated/`, `Cargo.lock` by hand, or the version in `Cargo.toml`
-  outside `make release-prep`.
+- Do not edit an assembled reference page (`reference/cli.md`, `reference/exit-codes.md`),
+  `Cargo.lock` by hand, or the version in `Cargo.toml` outside `make release-prep`. Edit
+  `docs/src/parts/` and run `make gen` instead.

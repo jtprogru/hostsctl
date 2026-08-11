@@ -33,8 +33,9 @@ make ci     # fmt-check, clippy, shellcheck, actionlint, tests, gen-check, msrv
 
 That is the same set CI runs, in the same order. Two of those deserve a note:
 
-- `gen-check` regenerates `docs/src/generated/` from the binary and fails if the committed
-  copy differs. If you touched the CLI definition, run `make gen` and commit the result.
+- `gen-check` reassembles the generated reference pages from the binary and fails if the
+  committed copy differs. If you touched the CLI definition or the exit codes, run
+  `make gen` and commit the result.
 - `msrv` builds against the minimum supported Rust version, which is usually older than
   your `stable`.
 
@@ -50,6 +51,19 @@ English is the primary language and lives in `docs/src/content/docs/`; the Russi
 mirrors it under `docs/src/content/docs/ru/`. A missing Russian page falls back to its
 English original rather than 404ing, so a partial translation is fine — an English page
 with no Russian counterpart is not a broken build.
+
+Two pages per locale are assembled rather than written:
+
+```
+docs/src/parts/<locale>/reference-cli.head.md        prose, frontmatter
++ hostsctl docs cli                                  the command tree
++ docs/src/parts/<locale>/reference-cli.tail.md      prose
+= docs/src/content/docs/[ru/]reference/cli.md        never edit this file
+```
+
+`reference/exit-codes.md` is built the same way. Edit the parts and run `make gen`; the
+assembled file is committed so that the site builds without a Rust toolchain, and CI fails
+if it drifts from a fresh generation.
 
 ## Conventions
 

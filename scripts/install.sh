@@ -61,14 +61,28 @@ need() {
 
 need tar
 if command -v curl >/dev/null 2>&1; then
+  FETCHER=curl
   fetch() { curl -fsSL "$1" -o "$2"; }
-  fetch_stdout() { curl -fsSL "$1"; }
 elif command -v wget >/dev/null 2>&1; then
+  FETCHER=wget
   fetch() { wget -qO "$2" "$1"; }
-  fetch_stdout() { wget -qO- "$1"; }
 else
   die "either curl or wget is required"
 fi
+
+# api.github.com is rate limited per IP for unauthenticated callers, and a shared
+# NAT reaches that limit without anyone noticing. github.com/releases/latest
+# redirects to the tag page instead, which costs nothing and never 403s.
+latest_tag() {
+  if [ "$FETCHER" = curl ]; then
+    curl -fsSLI -o /dev/null -w '%{url_effective}' \
+      "https://github.com/${REPO}/releases/latest" |
+      sed -n 's#.*/releases/tag/##p'
+  else
+    wget -qO- "https://api.github.com/repos/${REPO}/releases/latest" |
+      sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n 1
+  fi
+}
 
 os="$(uname -s)"
 arch="$(uname -m)"
@@ -98,8 +112,7 @@ case "$os" in
 esac
 
 if [ -z "$VERSION" ]; then
-  VERSION="$(fetch_stdout "https://api.github.com/repos/${REPO}/releases/latest" |
-    sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n 1)"
+  VERSION="$(latest_tag)"
   [ -n "$VERSION" ] || die "cannot determine the latest release; pass --version"
 fi
 

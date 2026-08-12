@@ -6,12 +6,16 @@ on:
     paths:
       - 'docs/**'
       - 'src/**'
+      # Обложка на главной — симлинк из docs/src/assets сюда, так что правка
+      # самого файла обязана пересобирать сайт.
+      - 'assets/**'
       - 'Cargo.toml'
       - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'docs/**'
       - 'src/**'
+      - 'assets/**'
   workflow_dispatch:
 
 permissions:

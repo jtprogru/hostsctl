@@ -4,6 +4,10 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+
+- A project cover in `assets/cover.svg`, shown at the top of both READMEs and used as the hero image on the documentation site's landing pages. The terminal on it is real output from `hostsctl add` and `hostsctl diff`, not a mock-up.
+
 ## [0.2.0] — 2026-08-11
 
 The documentation and the binary now say the same thing. Most of this release is that reconciliation: where the two disagreed, whichever side was wrong was changed.

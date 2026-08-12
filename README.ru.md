@@ -5,6 +5,10 @@
 [![docs](https://img.shields.io/badge/docs-jtprogru.github.io-blue)](https://jtprogru.github.io/hostsctl/ru/)
 [![licence](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
+<p align="center">
+  <img src="assets/cover.svg" alt="hostsctl — управление /etc/hosts из YAML-конфига: группы, файлы-зоны, удалённые блоклисты, бэкапы" width="900">
+</p>
+
 Управление `/etc/hosts` из YAML-конфига: группы, файлы-зоны, удалённые блоклисты, бэкапы.
 
 Записи живут в конфиге, hostsctl рендерит их в блок между маркерами внутри `/etc/hosts`.

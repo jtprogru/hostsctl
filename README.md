@@ -5,6 +5,10 @@
 [![docs](https://img.shields.io/badge/docs-jtprogru.github.io-blue)](https://jtprogru.github.io/hostsctl/)
 [![licence](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
+<p align="center">
+  <img src="assets/cover.svg" alt="hostsctl — manage /etc/hosts from a YAML config: groups, zone files, remote blocklists, backups" width="900">
+</p>
+
 Manage `/etc/hosts` from a YAML config: groups, zone files, remote blocklists, backups.
 
 Entries live in the config; hostsctl renders them into a block between markers inside

@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="hostsctl — manage /etc/hosts from a YAML config: groups, zone files, remote blocklists, backups">
+  <title>hostsctl</title>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="55%" stop-color="#101a1d"/>
+      <stop offset="100%" stop-color="#0d1a22"/>
+    </linearGradient>
+
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3FD1A7"/>
+      <stop offset="100%" stop-color="#5B8CFF"/>
+    </linearGradient>
+
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.028" stroke-width="1"/>
+    </pattern>
+
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#3FD1A7" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#3FD1A7" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+
+    <style>
+      .mono { font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .dim  { fill: #8b949e; }
+      .fg   { fill: #e6edf3; }
+      .acc  { fill: #5fd3b8; }
+      .grn  { fill: #5BB359; }
+      .add  { fill: #7ec87c; }
+      .cyn  { fill: #58c6d8; }
+      .yel  { fill: #d8a657; }
+    </style>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <ellipse cx="1060" cy="120" rx="460" ry="320" fill="url(#glow)"/>
+  <rect x="0" y="0" width="1280" height="4" fill="url(#accent)"/>
+
+  <!-- brand block -->
+  <g transform="translate(72, 96)">
+    <rect x="0" y="0" width="252" height="28" rx="14" fill="#3FD1A7" fill-opacity="0.12" stroke="#3FD1A7" stroke-opacity="0.42"/>
+    <text class="mono acc" x="16" y="19" font-size="13" letter-spacing="1.6">RUST · /etc/hosts · CLI</text>
+
+    <text class="mono fg" x="0" y="112" font-size="76" font-weight="700" letter-spacing="-1.5">hostsctl</text>
+
+    <text class="sans dim" x="2" y="158" font-size="24">Manage /etc/hosts from a YAML config: groups, zone files, remote blocklists, backups.</text>
+    <text class="sans dim" x="2" y="192" font-size="24">A single Rust binary. Writes are atomic, and every write leaves a backup.</text>
+  </g>
+
+  <!-- terminal -->
+  <g transform="translate(72, 310)" filter="url(#shadow)">
+    <rect x="0" y="0" width="1136" height="264" rx="14" fill="#0a0e14" stroke="#2a313c"/>
+    <rect x="0" y="0" width="1136" height="40" rx="14" fill="#161b22"/>
+    <rect x="0" y="26" width="1136" height="14" fill="#161b22"/>
+    <line x1="0" y1="40" x2="1136" y2="40" stroke="#2a313c"/>
+    <circle cx="24" cy="20" r="6" fill="#ff5f57"/>
+    <circle cx="46" cy="20" r="6" fill="#febc2e"/>
+    <circle cx="68" cy="20" r="6" fill="#28c840"/>
+    <text class="mono dim" x="568" y="25" font-size="13" text-anchor="middle">~ — zsh</text>
+
+    <text class="mono" x="28" y="78" font-size="19"><tspan class="grn">➜</tspan><tspan class="cyn" dx="12">~</tspan><tspan class="fg" dx="14">hostsctl add 127.0.0.1 k8s.orb.local --comment</tspan><tspan class="yel" dx="10">orbstack</tspan></text>
+    <text class="mono" x="28" y="106" font-size="19"><tspan class="grn">ok:</tspan><tspan class="fg" dx="10" fill-opacity="0.92">k8s.orb.local → 127.0.0.1 (group local)</tspan></text>
+
+    <text class="mono" x="28" y="146" font-size="19"><tspan class="grn">➜</tspan><tspan class="cyn" dx="12">~</tspan><tspan class="fg" dx="14">hostsctl diff</tspan></text>
+    <text class="mono dim" x="28" y="176" font-size="19" xml:space="preserve"> 127.0.0.1  localhost</text>
+    <text class="mono add" x="28" y="202" font-size="19">+# &#62;&#62;&#62; hostsctl begin &#62;&#62;&#62;</text>
+    <text class="mono add" x="28" y="228" font-size="19" xml:space="preserve">+127.0.0.1      k8s.orb.local  # orbstack</text>
+    <text class="mono" x="28" y="250" font-size="15"><tspan class="add">+8 / -0 lines</tspan><tspan class="dim" dx="10">— nothing outside the markers moved a byte</tspan></text>
+  </g>
+
+  <!-- feature chips -->
+  <g transform="translate(72, 608)" class="mono" font-size="14">
+    <g>
+      <rect x="0" y="-18" width="78" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="39" y="0" text-anchor="middle">groups</text>
+    </g>
+    <g transform="translate(88, 0)">
+      <rect x="0" y="-18" width="112" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="56" y="0" text-anchor="middle">zone files</text>
+    </g>
+    <g transform="translate(210, 0)">
+      <rect x="0" y="-18" width="112" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="56" y="0" text-anchor="middle">blocklists</text>
+    </g>
+    <g transform="translate(332, 0)">
+      <rect x="0" y="-18" width="87" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="43" y="0" text-anchor="middle">backups</text>
+    </g>
+    <g transform="translate(429, 0)">
+      <rect x="0" y="-18" width="70" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="35" y="0" text-anchor="middle">check</text>
+    </g>
+    <g transform="translate(509, 0)">
+      <rect x="0" y="-18" width="129" height="26" rx="13" fill="#ffffff" fill-opacity="0.05" stroke="#2a313c"/>
+      <text class="dim" x="64" y="0" text-anchor="middle">atomic apply</text>
+    </g>
+    <g transform="translate(648, 0)">
+      <rect x="0" y="-18" width="137" height="26" rx="13" fill="#3FD1A7" fill-opacity="0.10" stroke="#3FD1A7" stroke-opacity="0.35"/>
+      <text class="acc" x="68" y="0" text-anchor="middle">byte-for-byte</text>
+    </g>
+  </g>
+
+  <text class="mono dim" x="1208" y="608" font-size="14" text-anchor="end">github.com/jtprogru/hostsctl</text>
+</svg>

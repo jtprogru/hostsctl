@@ -6,7 +6,6 @@
 class Hostsctl < Formula
   desc "Manage /etc/hosts from a YAML config: groups, zone files, blocklists, backups"
   homepage "https://jtprogru.github.io/hostsctl/"
-  version "${VERSION}"
   license "MIT"
 
   on_macos do

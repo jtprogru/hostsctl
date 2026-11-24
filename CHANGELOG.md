@@ -4,6 +4,17 @@ All notable changes are documented in this file. The format follows [Keep a Chan
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-11-24
+
+### Security
+
+- Switched YAML parsing from `serde_yaml` to `yaml_serde` to remove `unsafe-libyaml` (RUSTSEC-2024-0449). Existing YAML configs and zone files need no migration.
+- Updated `rustix` to a version patched for RUSTSEC-2026-0486.
+
+### Fixed
+
+- The Homebrew formula now takes its version from the release URL instead of declaring it twice, resolving a `brew audit` warning.
+
 ### Added
 
 - A project cover in `assets/cover.svg`, shown at the top of both READMEs and used as the hero image on the documentation site's landing pages. The terminal on it is real output from `hostsctl add` and `hostsctl diff`, not a mock-up.
@@ -56,6 +67,7 @@ First release. `hostsctl` keeps `/etc/hosts` entries in a YAML config and render
 - A documentation site at <https://jtprogru.github.io/hostsctl/>, English with a Russian locale. The command reference and the exit-code table are generated from the code, and CI fails when the committed copies drift.
 - Release archives for Linux (`x86_64`/`aarch64`, glibc and musl) and macOS (Apple silicon and Intel), each with a keyless cosign signature, a SLSA build-provenance attestation and an entry in `checksums.txt`. Distributed through Homebrew, crates.io, `scripts/install.sh` and the archives themselves.
 
-[Unreleased]: https://github.com/jtprogru/hostsctl/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jtprogru/hostsctl/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/jtprogru/hostsctl/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jtprogru/hostsctl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jtprogru/hostsctl/releases/tag/v0.1.0

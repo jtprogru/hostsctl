@@ -201,7 +201,7 @@ impl Config {
                 format!("cannot read the config {}\n  create one: hostsctl init", path.display())
             })
             .or_code(exit::CONFIG)?;
-        let cfg: Config = serde_yaml::from_str(&raw)
+        let cfg: Config = yaml_serde::from_str(&raw)
             .with_context(|| format!("config {} is not valid", path.display()))
             .or_code(exit::CONFIG)?;
         if cfg.version > CURRENT_VERSION {
@@ -271,7 +271,7 @@ impl Config {
             include: self.include.clone(),
             groups: self.groups.iter().filter(|g| g.origin == Origin::Main).cloned().collect(),
         };
-        let body = serde_yaml::to_string(&main_only).context("cannot serialize the config")?;
+        let body = yaml_serde::to_string(&main_only).context("cannot serialize the config")?;
         write_if_changed(path, &format!("# hostsctl config — see hostsctl --help\n{body}"))?;
 
         // Файл-зона перезаписывается целиком, включая опустевшие.

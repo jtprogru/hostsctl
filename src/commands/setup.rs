@@ -29,7 +29,7 @@ pub fn init(cli: &Cli, args: &InitArgs) -> Result<()> {
     }
 
     if cli.dry_run {
-        println!("{}", serde_yaml::to_string(&cfg)?);
+        println!("{}", yaml_serde::to_string(&cfg)?);
         ui::info(&format!("dry-run: config {} was not created", path.display()));
         return Ok(());
     }

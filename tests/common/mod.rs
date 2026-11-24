@@ -98,14 +98,8 @@ impl Sandbox {
     }
 }
 
-pub fn bin() -> PathBuf {
-    // target/debug/deps/cli-<hash> → target/debug/hostsctl
-    let mut p = std::env::current_exe().unwrap();
-    p.pop();
-    if p.ends_with("deps") {
-        p.pop();
-    }
-    p.join(format!("hostsctl{}", std::env::consts::EXE_SUFFIX))
+pub fn bin() -> &'static str {
+    env!("CARGO_BIN_EXE_hostsctl")
 }
 
 pub fn assert_system_lines_intact(hosts: &str) {

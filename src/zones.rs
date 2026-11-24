@@ -140,7 +140,7 @@ fn load_yaml(path: &Path) -> Result<Vec<Group>> {
     if raw.trim().is_empty() {
         return Ok(vec![]);
     }
-    let doc: ZoneDoc = serde_yaml::from_str(&raw)
+    let doc: ZoneDoc = yaml_serde::from_str(&raw)
         .with_context(|| format!("zone {} is not valid", path.display()))
         .or_code(exit::CONFIG)?;
     Ok(match doc {
@@ -266,7 +266,7 @@ fn merge_by_hostnames(entries: Vec<Entry>) -> Vec<Entry> {
 pub fn render(groups: &[Group], kind: Kind, path: &Path) -> Result<String> {
     match kind {
         Kind::Yaml => {
-            let doc = serde_yaml::to_string(&YamlZone { groups })
+            let doc = yaml_serde::to_string(&YamlZone { groups })
                 .with_context(|| format!("cannot serialize zone {}", path.display()))?;
             Ok(format!("# hostsctl zone — attached through include in config.yaml\n{doc}"))
         }
